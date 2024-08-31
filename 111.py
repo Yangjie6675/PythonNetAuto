@@ -18,15 +18,15 @@ for i in range(11,16):
     print('Successfully connected to ' + ip)
 
     command = ssh_client.invoke_shell()
-    command.send(b'configure terminal\n')
+    command.send('configure terminal\n')
     for n in range(10, 21):
         print('Creating VLAN  ' + str(n))
         command.send('vlan ' + str(n) + '\n')
         command.send('name Python_VLAN ' + str(n) + '\n')
         time.sleep(1)
 
-    command.send(b'end\n')
-    command.send(b'write memory\n')
+    command.send('end\n')
+    command.send('write memory\n')
     time.sleep(2)
     output = command.recv(65535)
     print(output.decode('ascii'))
