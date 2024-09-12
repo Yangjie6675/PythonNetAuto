@@ -7,6 +7,13 @@ data ={
 
 df = pd.DataFrame(data)
 
-#print(df.loc[1])
-
+# iloc和loc都是先行后列
+print(df.iloc[: , 0]) # .iloc的列显示只能是整数数字索引
 print(df.iloc[1])
+print(df.iloc[1,1])
+
+
+print(df.loc[: , 'IP地址']) # .loc的列显示可以用整数或列表名称来索引
+
+print(df.loc[:, :])
+
