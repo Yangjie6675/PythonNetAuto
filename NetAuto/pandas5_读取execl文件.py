@@ -1,5 +1,5 @@
 import pandas as pd
 
-excel_file = 'inventory.xlsx'
+excel_file = 'E:\BlueStorm\Code\inventory.xlsx'
 df = pd.read_excel(excel_file)
-print(df.head())
+print(df)
