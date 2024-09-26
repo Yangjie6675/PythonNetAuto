@@ -1,5 +1,6 @@
 from pandas import DataFrame
 from influxdb_client import InfluxDBClient, Point, WritePrecision
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 # 连接到InfluxDB，这里需要修改括号里面的参数为你的信息
 client = InfluxDBClient(url="http://192.168.136.100:3032", token="BlueStorm", org="BlueStorm")
