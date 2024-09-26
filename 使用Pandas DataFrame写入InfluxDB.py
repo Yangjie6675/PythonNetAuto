@@ -22,3 +22,4 @@ for i in range(len(dataframe)):
 
 # 写入数据到InfluxDB
 write_api.write(bucket="your-bucket", org="your-org", record=points)
+
