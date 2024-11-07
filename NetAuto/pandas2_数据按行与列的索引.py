@@ -16,4 +16,3 @@ print(df.iloc[1,1])
 print(df.loc[: , 'IP地址']) # .loc的列显示可以用整数或列表名称来索引
 
 print(df.loc[:, :])
-

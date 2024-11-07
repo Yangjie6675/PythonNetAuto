@@ -17,4 +17,3 @@ new_row = {'IP地址': '192.168.1.5', '响应时间(ms)': 20, '状态': '正常'
 df = df._append(new_row, ignore_index=True)
 print("\n插入新行后的 DataFrame:")
 print(df)
-
