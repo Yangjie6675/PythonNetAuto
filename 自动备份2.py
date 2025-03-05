@@ -9,7 +9,7 @@ def backup_config(ip, username, password, vendor):
         # 允许连接不在 know_hosts 文件中的主机
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         # 连接服务器
-        ssh.connect(hostname=ip, port=22, username=username, password=password)
+        ssh.connect(hostname=ip, port=22, username=username, password=password,look_for_keys=False)
         # 打开一个 Channel 并创建交互式 shell
         shell = ssh.invoke_shell()
 
