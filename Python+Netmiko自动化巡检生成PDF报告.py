@@ -6,15 +6,15 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 import textfsm
 
-def connect_device(device):
-    """使用Netmiko连接网络设备"""
+def connect_device(conn_params):  # 仅接收连接参数
     try:
-        conn = ConnectHandler(**device)
-        print(f"成功连接到 {device['host']}")
+        conn = ConnectHandler(**conn_params)
+        print(f"成功连接到 {conn_params['host']}")
         return conn
     except Exception as e:
-        print(f"连接 {device['host']} 失败: {str(e)}")
+        print(f"连接 {conn_params['host']} 失败: {str(e)}")
         return None
+
 
 def execute_commands(conn, commands):
     """执行巡检命令并返回结果"""
@@ -85,31 +85,33 @@ def generate_pdf(report_data, filename):
 def main():
     # 设备列表
     devices = [
-        {
+    {
+        'connection': {  # 连接参数单独存放
             'device_type': 'cisco_ios',
-            'host': '192.168.1.1',
-            'username': 'admin',
-            'password': 'password',
-            'secret': 'enablepass',
-            'commands': [
-                'show version',
-                'show interfaces status',
-                'show running-config | include logging'
-            ]
-        }
-    ]
+            'host': '192.168.136.11',
+            'username': 'python',
+            'password': 'Cisco@123',
+            'secret': 'cisco',
+        },
+        'commands': [  # 命令列表独立存放
+            'show version',
+            'show interfaces status',
+            'show running-config | include logging'
+        ]
+    }
+]
 
     report_data = []
 
     for dev in devices:
         device_info = {
-            'ip': dev['host'],
-            'type': dev['device_type'],
-            'checks': []
+        'ip': dev['connection']['host'],
+        'type': dev['connection']['device_type'],
+        'checks': []
         }
         
         # 连接设备
-        conn = connect_device(dev)
+        conn = connect_device(dev['connection'])
         if not conn:
             continue
             
@@ -162,3 +164,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
