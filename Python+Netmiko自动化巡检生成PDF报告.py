@@ -4,6 +4,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 import textfsm
 
 def connect_device(conn_params):  # 仅接收连接参数
@@ -29,7 +31,9 @@ def execute_commands(conn, commands):
 
 def parse_interface_status(output):
     """使用TextFSM解析接口状态"""
-    with open('cisco_ios_show_interfaces_status.template') as f:
+    pdfmetrics.registerFont(TTFont('SimSun', 'SimSun.ttf'))
+    
+    with open('cisco_ios_show_interfaces_status.textfsm') as f:
         fsm = textfsm.TextFSM(f)
         result = fsm.ParseText(output)
     return [dict(zip(fsm.header, row)) for row in result]
@@ -38,18 +42,20 @@ def generate_pdf(report_data, filename):
     """生成PDF报告"""
     doc = SimpleDocTemplate(filename, pagesize=letter)
     styles = getSampleStyleSheet()
+    
+    # 自定义中文字体样式
+    chinese_style = styles["Normal"]
+    chinese_style.fontName = 'SimSun'  # 使用注册的字体名称
+    chinese_style.fontSize = 12
+    
+    # 标题样式
+    title_style = styles["Title"]
+    title_style.fontName = 'SimSun'
+    
+    # 使用自定义样式替换默认样式
     story = []
-    
-    # 标题
-    title = Paragraph("网络设备巡检报告", styles['Title'])
+    title = Paragraph("网络设备巡检报告", title_style)
     story.append(title)
-    story.append(Spacer(1, 12))
-    
-    # 生成时间
-    time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    time_info = Paragraph(f"生成时间: {time_str}", styles['Normal'])
-    story.append(time_info)
-    story.append(Spacer(1, 24))
     
     # 遍历每个设备的检查结果
     for device in report_data:
@@ -99,7 +105,7 @@ def main():
             'show running-config | include logging'
         ]
     }
-]
+    ]
 
     report_data = []
 
@@ -140,7 +146,7 @@ def main():
         # 示例2：检查接口状态
         intf_output = results.get('show interfaces status', '')
         parsed_intf = parse_interface_status(intf_output)
-        err_intf = [intf for intf in parsed_intf if intf['status'] != 'connected']
+        err_intf = [intf for intf in parsed_intf if intf['STATUS'] != 'connected']
         
         if len(err_intf) == 0:
             device_info['checks'].append({
@@ -164,4 +170,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
