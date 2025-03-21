@@ -1,6 +1,6 @@
 from netmiko import ConnectHandler
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter # type: ignore
+from reportlab.pdfgen import canvas # type: ignore
 
 # 定义网络设备信息
 device_info = {
