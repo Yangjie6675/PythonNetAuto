@@ -1,0 +1,132 @@
+import time
+import paramiko
+from openpyxl import load_workbook
+
+def get_serial_huawei(ip, username, password):
+    """获取华为设备序列号"""
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(ip, port=22, username=username, password=password, timeout=10)
+        
+        channel = ssh.invoke_shell()
+        time.sleep(1)
+        # 禁用分页显示
+        channel.send("screen-length 0 temporary\n")
+        time.sleep(1)
+        channel.send("display device manuinfo | include SN\n")
+        time.sleep(3)
+        output = channel.recv(65535).decode('utf-8')
+        ssh.close()
+        
+        for line in output.split('\n'):
+            if 'SN:' in line:
+                return line.split(':')[-1].strip()
+        return None
+    except Exception as e:
+        print(f"华为设备 {ip} 连接失败: {str(e)}")
+        return None
+
+def get_serial_cisco(ip, username, password):
+    """获取思科设备序列号"""
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(ip, port=22, username=username, password=password, timeout=10)
+        
+        channel = ssh.invoke_shell()
+        time.sleep(1)
+        # 进入特权模式（假设enable密码与登录密码相同）
+        channel.send("enable\n")
+        time.sleep(1)
+        channel.send(f"{password}\n")
+        time.sleep(1)
+        # 禁用分页显示
+        channel.send("terminal length 0\n")
+        time.sleep(1)
+        channel.send("show version | include Processor board ID\n")
+        time.sleep(3)
+        output = channel.recv(65535).decode('utf-8')
+        ssh.close()
+        
+        for line in output.split('\n'):
+            if 'Processor board ID' in line:
+                return line.split()[-1].strip()
+        return None
+    except Exception as e:
+        print(f"思科设备 {ip} 连接失败: {str(e)}")
+        return None
+
+def get_serial_h3c(ip, username, password):
+    """获取H3C设备序列号"""
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(ip, port=22, username=username, password=password, timeout=10)
+        
+        channel = ssh.invoke_shell()
+        time.sleep(1)
+        # 禁用分页显示
+        channel.send("screen-length disable\n")
+        time.sleep(1)
+        channel.send("display device manuinfo | include Serial Number\n")
+        time.sleep(3)
+        output = channel.recv(65535).decode('utf-8')
+        ssh.close()
+        
+        for line in output.split('\n'):
+            if 'Serial Number' in line:
+                return line.split(':')[-1].strip()
+        return None
+    except Exception as e:
+        print(f"H3C设备 {ip} 连接失败: {str(e)}")
+        return None
+
+# 厂商处理方法映射
+VENDOR_HANDLERS = {
+    '华为': get_serial_huawei,
+    'Huawei': get_serial_huawei,
+    'Cisco': get_serial_cisco,
+    '思科': get_serial_cisco,
+    'H3C': get_serial_h3c,
+    '华三': get_serial_h3c
+}
+
+def process_devices(file_path):
+    # 加载Excel文件
+    wb = load_workbook(file_path)
+    ws = wb.active
+    
+    # 遍历设备（假设第一行是标题）
+    for row in ws.iter_rows(min_row=2):
+        device_name = row[0].value
+        ip = row[1].value
+        vendor = row[2].value.strip() if row[2].value else ''
+        username = row[3].value
+        password = row[4].value
+        serial = row[5].value
+        
+        # 仅处理空序列号
+        if not serial:
+            handler = VENDOR_HANDLERS.get(vendor)
+            if not handler:
+                print(f"设备 {device_name} 不支持的厂商: {vendor}")
+                continue
+            
+            print(f"正在处理 {device_name}({ip})...")
+            new_serial = handler(ip, username, password)
+            
+            if new_serial:
+                row[5].value = new_serial
+                print(f"成功获取序列号: {new_serial}")
+            else:
+                print("未能获取有效序列号")
+    
+    # 保存结果到新文件
+    output_path = file_path.replace('.xlsx', '_updated.xlsx')
+    wb.save(output_path)
+    print(f"处理完成，结果已保存至: {output_path}")
+
+if __name__ == "__main__":
+    input_file = "device_list.xlsx"  # 修改为实际文件路径
+    process_devices(input_file)
