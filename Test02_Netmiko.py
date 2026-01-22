@@ -34,6 +34,7 @@ def backup_device(device):
     #  设备连接信息（请根据你的实际情况修改）
 
 
+
 device = {
     'device_type': 'cisco_ios',  # 设备类型，根据Netmiko的文档选择
     'host': '192.168.1.1',  # 设备IP地址
