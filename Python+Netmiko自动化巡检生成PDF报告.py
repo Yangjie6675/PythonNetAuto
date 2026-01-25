@@ -17,7 +17,6 @@ def connect_device(conn_params):  # 仅接收连接参数
         print(f"连接 {conn_params['host']} 失败: {str(e)}")
         return None
 
-
 def execute_commands(conn, commands):
     """执行巡检命令并返回结果"""
     results = {}
